@@ -131,7 +131,11 @@ class Database {
     }
   }
 
-  // Close connection
+  /**
+   * Function to close Database Connection.
+   *
+   * @return void
+   */
   public function closeConnection() {
     $this->conn->close();
   }
