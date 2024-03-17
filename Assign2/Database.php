@@ -1,12 +1,14 @@
 <?php
 
 /**
- * Database Class to connect to the MySQL server and insert data in to the database.
+ * Database Class to connect to MySQL server and insert data into the database.
  */
 class Database {
+  
   /**
    * Stores the connected database object provided by mysqli.
-   * @var mixed
+   * 
+   * @var \PDO
    */
   private $conn;
 
@@ -14,20 +16,23 @@ class Database {
    * Constructor to establish connection.
    *
    * @param string $servername
-   * Name of the DBMS server.
+   *  Name of the DBMS server.
    * @param string $username
-   * The DBMS username.
+   *  The DBMS username.
    * @param string $password
-   * The DBMS access/login password.
+   *  The DBMS access/login password.
    * @param string $database
-   * The name of the Database to be used.
-   * 
+   *  The name of the Database to be used.
    */
   public function __construct(string $servername, string $username, string $password, string $database) {
-    $this->conn = new mysqli($servername, $username, $password, $database);
-
-    if ($this->conn->connect_error) {
-      die("Connection failed: " . $this->conn->connect_error);
+    try {
+      $database_server = "mysql:host=$servername;dbname=$database";
+      $pdo = new PDO($database_server, $username, $password);
+      $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+      $this->conn = $pdo;
+    }
+    catch (PDOException $e) {
+      die("Connection failed: " . $e->getMessage());
     }
   }
 
@@ -35,16 +40,16 @@ class Database {
    * Function to insert data into the employee_code_table.
    *
    * @param string $code
-   * Employee code
+   *  Employee code
    * @param string $code_name
-   * Employee code name
+   *  Employee code name
    * @param string $domain
-   * Employee domain or Area of Expertise.
+   *  Employee domain or Area of Expertise.
    * 
    * @return void
-   * 
    */
   public function insertDataCode($code, $code_name, $domain) {
+    
     $sql = "INSERT INTO 
               employee_code_table (
                 employee_code, 
@@ -52,27 +57,25 @@ class Database {
                 employee_domain
               ) 
               VALUES (
-                '$code', 
-                '$code_name', 
-                '$domain'
+                :code, 
+                :code_name, 
+                :domain
               ); ";
-    // Query is run in the connected server through the query method. 
-    // The function returns TRUE if query is successfull, or FALSE if not.
-    if ($this->conn->query($sql) === TRUE) {
-      echo "New record created in 'employee_code_table' successfully" . nl2br("\n");
-    }
-    else {
-      // Display the error.
-      echo "Error: $this->conn->error";
-    }
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute([
+      ':code' => $code,
+      ':code_name' => $code_name,
+      ':domain' => $domain
+    ]);
   }
+
   /**
    * Function to insert data into employee_salary_table.
    *
    * @param int $salary
-   * Salary of the employee.
+   *  Salary of the employee.
    * @param string $code
-   * Employee code.
+   *  Employee code.
    * 
    * @return void
    */
@@ -83,28 +86,25 @@ class Database {
                 employee_code
               ) 
             VALUES (
-              '$salary', 
-              '$code'
+              :salary, 
+              :code
             ); ";
-    // Query is run in the connected server through the query method. 
-    // The function returns TRUE if query is successfull, or FALSE if not.
-    if ($this->conn->query($sql) === TRUE) {
-      echo "New record created in 'employee_salary_table' successfully" . nl2br("\n");    
-    }
-    // Display the error.
-    else {
-      echo "Error: $this->conn->error";
-    }
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute([
+      ':salary' => $salary,
+      ':code' => $code
+    ]);
   }
+
   /**
    * Function to insert the data into employee_details_table.
    *
    * @param string $first_name
-   * First Name of the employee.
+   *  First Name of the employee.
    * @param string $last_name
-   * Last Name of the employee.
+   *  Last Name of the employee.
    * @param int $percentile
-   * Graduation_percentile of the employee.
+   *  Graduation_percentile of the employee.
    * 
    * @return void
    */
@@ -116,19 +116,16 @@ class Database {
                 Graduation_percentile
                 ) 
             VALUES (
-              '$first_name', 
-              '$last_name', 
-              '$percentile'
+              :first_name, 
+              :last_name, 
+              :percentile
             ); ";
-    // Query is run in the connected server through the query method. 
-    // The function returns TRUE if query is successfull, or FALSE if not.
-    if ($this->conn->query($sql) === TRUE) {
-      echo "New record created in 'employee_details_table' successfully" . nl2br("\n");
-    }
-    // Display the error.
-    else {
-      echo "Error: $this->conn->error";
-    }
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute([
+      ':first_name' => $first_name,
+      ':last_name' => $last_name,
+      ':percentile' => $percentile
+    ]);
   }
 
   /**
@@ -137,6 +134,6 @@ class Database {
    * @return void
    */
   public function closeConnection() {
-    $this->conn->close();
+    unset($this->conn);
   }
 }

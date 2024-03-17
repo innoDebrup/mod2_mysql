@@ -1,9 +1,9 @@
 <?php
 
 use Dotenv\Dotenv;
-
 require_once "Database.php";
 require_once "vendor/autoload.php";
+
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 //Loading the $_ENV values into variables.
